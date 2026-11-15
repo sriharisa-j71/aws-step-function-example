@@ -1,0 +1,11 @@
+target/
+infra/.terraform/
+infra/.terraform.tfstate.lock.info
+*.tfstate
+*.tfstate.*
+*.tfplan
+infra/tfplan
+.idea/
+.vscode/
+*.iml
+.DS_Store

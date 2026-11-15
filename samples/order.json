@@ -1,0 +1,20 @@
+{
+  "orderId": "ORD-1001",
+  "customer": {
+    "id": "CUST-42",
+    "tier": "GOLD"
+  },
+  "currency": "USD",
+  "items": [
+    {
+      "sku": "KEYBOARD-01",
+      "qty": 1,
+      "unitPrice": 89.50
+    },
+    {
+      "sku": "MOUSE-02",
+      "qty": 2,
+      "unitPrice": 24.75
+    }
+  ]
+}

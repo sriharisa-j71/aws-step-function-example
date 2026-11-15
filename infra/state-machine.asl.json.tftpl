@@ -1,0 +1,110 @@
+{
+  "Comment": "Three-step order workflow executed by Floci Step Functions",
+  "StartAt": "ValidateOrder",
+  "States": {
+    "ValidateOrder": {
+      "Type": "Task",
+      "Comment": "Step 1 - validate the order and return a validation envelope",
+      "Resource": "${validate_order_arn}",
+      "TimeoutSeconds": 120,
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.Unknown"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 2,
+          "BackoffRate": 2
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.error",
+          "Next": "RejectOrder"
+        }
+      ],
+      "Next": "OrderValid"
+    },
+    "OrderValid": {
+      "Type": "Choice",
+      "Comment": "Branch on the validation result instead of using another Lambda",
+      "Choices": [
+        {
+          "Variable": "$.validation.valid",
+          "BooleanEquals": true,
+          "Next": "EnrichOrder"
+        }
+      ],
+      "Default": "RejectOrder"
+    },
+    "EnrichOrder": {
+      "Type": "Task",
+      "Comment": "Step 2 - calculate discount, tax and order total",
+      "Resource": "${enrich_order_arn}",
+      "TimeoutSeconds": 120,
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.Unknown"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 2,
+          "BackoffRate": 2
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.error",
+          "Next": "RejectOrder"
+        }
+      ],
+      "Next": "PersistOrder"
+    },
+    "PersistOrder": {
+      "Type": "Task",
+      "Comment": "Step 3 - persist the priced order to DynamoDB",
+      "Resource": "${persist_order_arn}",
+      "TimeoutSeconds": 120,
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.Unknown"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 2,
+          "BackoffRate": 2
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.error",
+          "Next": "RejectOrder"
+        }
+      ],
+      "Next": "OrderPersisted"
+    },
+    "OrderPersisted": {
+      "Type": "Succeed"
+    },
+    "RejectOrder": {
+      "Type": "Fail",
+      "Error": "OrderRejected",
+      "Cause": "The order failed validation or a workflow task raised an error."
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "orderId": "",
+  "customer": {
+    "id": "CUST-99",
+    "tier": "SILVER"
+  },
+  "currency": "USD",
+  "items": [
+    {
+      "sku": "MONITOR-03",
+      "qty": 0,
+      "unitPrice": 249.00
+    }
+  ]
+}
